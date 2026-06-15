@@ -219,3 +219,7 @@ __marimo__/
 
 # ML model files
 *.pkl
+
+# Logs and artifacts folder
+artifact/
+logs/
