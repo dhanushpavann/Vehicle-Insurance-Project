@@ -1,4 +1,12 @@
- 1.Create project template by executing template.py file
+###WORK FLOW###
+constant
+config_entity
+artifact_entity
+component
+pipeline
+app.py/demo.py
+
+1.Create project template by executing template.py file
 2. Write the code on setup.py and pyproject.toml file to import local packages
    >> Find more about "setup.py and pyproject.toml" at crashcourse.txt
 3. Create a virtual env, activate it and install the requirements from requirements.txt
