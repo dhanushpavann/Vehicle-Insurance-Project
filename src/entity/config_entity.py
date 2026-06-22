@@ -41,4 +41,12 @@ class DataTransformationConfig:
 @dataclass
 class ModelTrainerConfig:
     model_trainer_dir: str = os.path.join(training_pipeline_config.artifact_dir, MODEL_TRAINER_DIR_NAME)
-    
+    trained_model_file_path : str = os.path.join(model_trainer_dir, MODEL_TRAINER_TRAINED_MODEL_DIR,MODEL_FILE_NAME)
+    expected_accuracy: float = MODEL_TRAINER_EXPECTED_SCORE
+    model_config_file_path: str = MODEL_TRAINER_MODEL_CONFIG_FILE_PATH
+    _n_estimators: int = MODEL_TRAINER_N_ESTIMATORS
+    _min_samples_split: int = MODEL_TRAINER_MIN_SAMPLES_SPLIT
+    _min_samples_leaf: int = MODEL_TRAINER_MIN_SAMPLES_LEAF
+    _max_depth: int = MODEL_TRAINER_MAX_DEPTH
+    _criterion: str = MODEL_TRAINER_CRITERION
+    _random_state: int = MODEL_TRAINER_RANDOM_STATE
