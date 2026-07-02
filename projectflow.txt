@@ -97,5 +97,6 @@ app.py/demo.py
         and push model from AWS S3 bucket. 
       * Inside "entity" dir we will have an "s3_estimator.py" file containing all the func to pull/push
         data from s3 bucket.
-      * Make sure to block the public requests in S3
+        
+24. Now we will start our work on "Model Evaluation" and "Model Pusher" component.
 
