@@ -1,62 +1,332 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vehicle Insurance Prediction</title>
-    <!-- Corrected the CSS path -->
-    <link rel="stylesheet" href="/static/css/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vehicle Insurance Prediction</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { height: 100%; }
+
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 48px 16px 60px;
+      background-color: #060d2e;
+      background-image:
+        radial-gradient(ellipse 80% 60% at 20% 30%, rgba(63,43,150,0.55) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 70%, rgba(30,20,100,0.60) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 40% at 50% 5%,  rgba(100,60,200,0.30) 0%, transparent 50%);
+      overflow-x: hidden;
+      position: relative;
+      animation: bgPulse 10s ease-in-out infinite alternate;
+    }
+
+    @keyframes bgPulse {
+      0%   { background-color: #060d2e; }
+      100% { background-color: #080f38; }
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background-image:
+        repeating-linear-gradient(118deg, transparent 0px, transparent 79px, rgba(80,120,255,0.045) 79px, rgba(80,120,255,0.045) 80px),
+        repeating-linear-gradient(62deg,  transparent 0px, transparent 119px, rgba(140,80,255,0.035) 119px, rgba(140,80,255,0.035) 120px);
+      animation: waveScroll 22s linear infinite;
+    }
+
+    @keyframes waveScroll {
+      from { background-position: 0 0, 0 0; }
+      to   { background-position: 400px 400px, -300px 300px; }
+    }
+
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      animation: orbFloat 9s ease-in-out infinite;
+    }
+    .orb-1 { width:340px; height:340px; top:-100px; left:-100px; background: radial-gradient(circle at 40% 40%, rgba(91,61,232,0.55), rgba(42,22,128,0)); filter:blur(55px); animation-duration:9s; }
+    .orb-2 { width:260px; height:260px; bottom:5%; right:-80px; background: radial-gradient(circle at 60% 60%, rgba(124,58,237,0.50), rgba(59,31,168,0)); filter:blur(50px); animation-duration:12s; animation-delay:-4s; }
+    .orb-3 { width:160px; height:160px; top:42%; left:3%; background: radial-gradient(circle at 50% 50%, rgba(168,85,247,0.35), transparent); filter:blur(40px); animation-duration:14s; animation-delay:-7s; }
+    .orb-4 { width:110px; height:110px; top:65%; right:8%; background: radial-gradient(circle at 50% 50%, rgba(96,165,250,0.30), transparent); filter:blur(35px); animation-duration:8s; animation-delay:-2s; }
+
+    @keyframes orbFloat {
+      0%,100% { transform: translateY(0) scale(1); }
+      50%      { transform: translateY(-28px) scale(1.05); }
+    }
+
+    /* === Card === */
+    .container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 560px;
+      background: rgba(255,255,255,0.055);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      border: 1px solid rgba(255,255,255,0.11);
+      border-radius: 24px;
+      padding: 38px 34px 44px;
+      box-shadow: 0 0 0 1px rgba(120,80,255,0.12), 0 10px 50px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07);
+    }
+
+    /* === Header === */
+    .header-icon { display:flex; justify-content:center; margin-bottom:18px; }
+    .icon-circle {
+      width:72px; height:72px; border-radius:50%;
+      background: linear-gradient(145deg, rgba(255,255,255,0.14), rgba(255,255,255,0.04));
+      border: 1px solid rgba(255,255,255,0.18);
+      display:flex; align-items:center; justify-content:center;
+      font-size:30px;
+      box-shadow: 0 4px 24px rgba(91,61,232,0.45);
+    }
+
+    h1 {
+      color:#fff; font-size:26px; font-weight:700;
+      text-align:center; line-height:1.25;
+      margin-bottom:8px; letter-spacing:-0.3px;
+    }
+    h1 span {
+      background: linear-gradient(90deg,#818cf8,#a78bfa,#c084fc);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
+
+    .accent-bar {
+      width:42px; height:3px;
+      background: linear-gradient(90deg,#818cf8,#c084fc);
+      border-radius:2px; margin:0 auto 10px;
+    }
+
+    .subtitle {
+      text-align:center; color:rgba(200,210,255,0.50);
+      font-size:13px; font-weight:400; margin-bottom:30px;
+    }
+
+    /* === Form Grid === */
+    .predict-form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px 18px;
+    }
+
+    .field { display:flex; flex-direction:column; gap:7px; }
+    .field.full { grid-column: 1 / -1; }
+
+    label {
+      display:flex; align-items:flex-start; gap:6px;
+      color:rgba(200,210,255,0.78);
+      font-size:11.5px; font-weight:500;
+      letter-spacing:0.1px; line-height:1.35;
+    }
+    .lbl-icon { font-size:12px; flex-shrink:0; margin-top:1px; }
+
+    input[type="number"] {
+      width:100%; padding:11px 13px;
+      background: rgba(255,255,255,0.055);
+      border: 1px solid rgba(255,255,255,0.13);
+      border-radius:10px;
+      color:#fff; font-size:14px; font-family:inherit;
+      outline:none;
+      transition: border-color 0.18s, background 0.18s, box-shadow 0.18s;
+      -moz-appearance:textfield; appearance:textfield;
+    }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
+    input[type="number"]::placeholder { color:rgba(180,190,255,0.30); font-size:13px; }
+    input[type="number"]:hover { border-color:rgba(129,140,248,0.40); background:rgba(255,255,255,0.08); }
+    input[type="number"]:focus { border-color:rgba(129,140,248,0.70); background:rgba(129,140,248,0.07); box-shadow:0 0 0 3px rgba(129,140,248,0.14); }
+
+    /* === Predict button === */
+    .btn-predict {
+      grid-column: 1 / -1;
+      width:100%; margin-top:6px; padding:14px 24px;
+      background: linear-gradient(135deg,#5b3de8,#7c3aed,#a855f7);
+      color:#fff; border:none; border-radius:12px;
+      font-size:15px; font-weight:600; font-family:inherit;
+      cursor:pointer; letter-spacing:0.2px;
+      display:flex; align-items:center; justify-content:center; gap:8px;
+      box-shadow:0 4px 22px rgba(124,58,237,0.42);
+      transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+    }
+    .btn-predict:hover { filter:brightness(1.12); transform:translateY(-2px); box-shadow:0 7px 30px rgba(124,58,237,0.60); }
+    .btn-predict:active { transform:translateY(0); }
+
+    /* === OR row === */
+    .or-row {
+      display:flex; align-items:center; gap:12px;
+      margin:18px 0;
+    }
+    .or-row::before, .or-row::after {
+      content:''; flex:1; height:1px;
+      background:rgba(255,255,255,0.08);
+    }
+    .or-row span {
+      color:rgba(180,190,255,0.35); font-size:11px;
+      font-weight:500; letter-spacing:1.8px; flex-shrink:0;
+    }
+
+    /* === Train button === */
+    .btn-train {
+      width:100%; padding:14px 24px;
+      background: linear-gradient(135deg,#059669,#10b981);
+      color:#fff; border:none; border-radius:12px;
+      font-size:15px; font-weight:600; font-family:inherit;
+      cursor:pointer; letter-spacing:0.2px;
+      display:flex; align-items:center; justify-content:center; gap:8px;
+      box-shadow:0 4px 22px rgba(16,185,129,0.32);
+      transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+    }
+    .btn-train:hover { filter:brightness(1.10); transform:translateY(-2px); box-shadow:0 7px 28px rgba(16,185,129,0.50); }
+    .btn-train:active { transform:translateY(0); }
+
+    /* === Result === */
+    .result {
+      margin-top:20px; border-radius:14px; padding:16px 20px;
+      display:flex; align-items:center; gap:14px;
+      background:rgba(99,102,241,0.09);
+      border:1px solid rgba(129,140,248,0.22);
+    }
+    .result--yes { background:rgba(16,185,129,0.09); border-color:rgba(16,185,129,0.28); }
+    .result--no  { background:rgba(239,68,68,0.09);  border-color:rgba(239,68,68,0.25); }
+
+    .result-icon {
+      width:46px; height:46px; border-radius:50%; flex-shrink:0;
+      background: linear-gradient(135deg,#5b3de8,#a855f7);
+      display:flex; align-items:center; justify-content:center;
+      font-size:20px; box-shadow:0 4px 14px rgba(124,58,237,0.40);
+    }
+    .result-label {
+      font-size:10.5px; font-weight:600;
+      letter-spacing:1px; text-transform:uppercase;
+      margin-bottom:3px; color:#818cf8;
+    }
+    .result--yes .result-label { color:#34d399; }
+    .result--no  .result-label { color:#f87171; }
+
+    .result-body h2 { color:#fff; font-size:16px; font-weight:600; }
+    .result-hint {
+      color:rgba(200,210,255,0.50); font-size:12px;
+      margin-top:3px; line-height:1.4;
+    }
+
+    /* === Responsive === */
+    @media (max-width: 500px) {
+      .container { padding:28px 18px 36px; }
+      .predict-form { grid-template-columns:1fr; }
+      .field.full { grid-column:1; }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Vehicle Insurance Prediction</h1>
 
-        <form method="post" action="/">
-            <label for="Gender">Gender (1: Male, 0: Female):</label>
-            <input type="number" id="Gender" name="Gender" min="0" max="1" required>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="orb orb-4"></div>
 
-            <label for="Age">Age:</label>
-            <input type="number" id="Age" name="Age" required>
+  <div class="container">
 
-            <label for="Driving_License">Driving License (0: No, 1: Yes):</label>
-            <input type="number" id="Driving_License" name="Driving_License" min="0" max="1" required>
-
-            <label for="Region_Code">Region Code:</label>
-            <input type="number" step="0.01" id="Region_Code" name="Region_Code" required>
-
-            <label for="Previously_Insured">Previously Insured (0: No, 1: Yes):</label>
-            <input type="number" id="Previously_Insured" name="Previously_Insured" min="0" max="1" required>
-
-            <label for="Annual_Premium">Annual Premium:</label>
-            <input type="number" step="0.01" id="Annual_Premium" name="Annual_Premium" required>
-
-            <label for="Policy_Sales_Channel">Policy Sales Channel:</label>
-            <input type="number" step="0.01" id="Policy_Sales_Channel" name="Policy_Sales_Channel" required>
-
-            <label for="Vintage">Vintage:</label>
-            <input type="number" id="Vintage" name="Vintage" required>
-
-            <label for="Vehicle_Age_lt_1_Year">Vehicle Age < 1 Year (0: No, 1: Yes):</label>
-            <input type="number" id="Vehicle_Age_lt_1_Year" name="Vehicle_Age_lt_1_Year" min="0" max="1" required>
-
-            <label for="Vehicle_Age_gt_2_Years">Vehicle Age > 2 Years (0: No, 1: Yes):</label>
-            <input type="number" id="Vehicle_Age_gt_2_Years" name="Vehicle_Age_gt_2_Years" min="0" max="1" required>
-
-            <label for="Vehicle_Damage_Yes">Vehicle Damage (0: No, 1: Yes):</label>
-            <input type="number" id="Vehicle_Damage_Yes" name="Vehicle_Damage_Yes" min="0" max="1" required>
-
-            <button type="submit">Predict</button>
-        </form>
-
-        <form method="get" action="/train">
-            <button type="submit" class="train-button">Train Model</button>
-        </form>
-
-        {% if context %}
-            <div class="result">
-                <h2>Result: {{ context }}</h2>
-            </div>
-        {% endif %}
+    <div class="header-icon">
+      <div class="icon-circle">🛡️</div>
     </div>
+    <h1>Vehicle Insurance<br><span>Prediction</span></h1>
+    <div class="accent-bar"></div>
+    <p class="subtitle">Enter the details below to predict insurance status</p>
+
+    <form method="post" action="/" class="predict-form">
+
+      <div class="field">
+        <label for="Gender"><span class="lbl-icon">👤</span>Gender (1: Male, 0: Female)</label>
+        <input type="number" id="Gender" name="Gender" min="0" max="1" placeholder="Enter 1 or 0" required>
+      </div>
+
+      <div class="field">
+        <label for="Age"><span class="lbl-icon">📅</span>Age</label>
+        <input type="number" id="Age" name="Age" placeholder="Enter age" required>
+      </div>
+
+      <div class="field">
+        <label for="Driving_License"><span class="lbl-icon">🪪</span>Driving License (0: No, 1: Yes)</label>
+        <input type="number" id="Driving_License" name="Driving_License" min="0" max="1" placeholder="Enter 0 or 1" required>
+      </div>
+
+      <div class="field">
+        <label for="Region_Code"><span class="lbl-icon">📍</span>Region Code</label>
+        <input type="number" step="0.01" id="Region_Code" name="Region_Code" placeholder="Enter region code" required>
+      </div>
+
+      <div class="field">
+        <label for="Previously_Insured"><span class="lbl-icon">🛡️</span>Previously Insured (0: No, 1: Yes)</label>
+        <input type="number" id="Previously_Insured" name="Previously_Insured" min="0" max="1" placeholder="Enter 0 or 1" required>
+      </div>
+
+      <div class="field">
+        <label for="Annual_Premium"><span class="lbl-icon">₹</span>Annual Premium</label>
+        <input type="number" step="0.01" id="Annual_Premium" name="Annual_Premium" placeholder="Enter amount" required>
+      </div>
+
+      <div class="field">
+        <label for="Policy_Sales_Channel"><span class="lbl-icon">📊</span>Policy Sales Channel</label>
+        <input type="number" step="0.01" id="Policy_Sales_Channel" name="Policy_Sales_Channel" placeholder="Enter channel code" required>
+      </div>
+
+      <div class="field">
+        <label for="Vintage"><span class="lbl-icon">⏱️</span>Vintage</label>
+        <input type="number" id="Vintage" name="Vintage" placeholder="Enter vintage" required>
+      </div>
+
+      <div class="field">
+        <label for="Vehicle_Age_lt_1_Year"><span class="lbl-icon">🚗</span>Vehicle Age &lt; 1 Year (0: No, 1: Yes)</label>
+        <input type="number" id="Vehicle_Age_lt_1_Year" name="Vehicle_Age_lt_1_Year" min="0" max="1" placeholder="Enter 0 or 1" required>
+      </div>
+
+      <div class="field">
+        <label for="Vehicle_Age_gt_2_Years"><span class="lbl-icon">🚙</span>Vehicle Age &gt; 2 Years (0: No, 1: Yes)</label>
+        <input type="number" id="Vehicle_Age_gt_2_Years" name="Vehicle_Age_gt_2_Years" min="0" max="1" placeholder="Enter 0 or 1" required>
+      </div>
+
+      <div class="field full">
+        <label for="Vehicle_Damage_Yes"><span class="lbl-icon">⚠️</span>Vehicle Damage (0: No, 1: Yes)</label>
+        <input type="number" id="Vehicle_Damage_Yes" name="Vehicle_Damage_Yes" min="0" max="1" placeholder="Enter 0 or 1" required>
+      </div>
+
+      <button type="submit" class="btn-predict">Predict &nbsp;→</button>
+
+    </form>
+
+    <div class="or-row"><span>OR</span></div>
+
+    <form method="get" action="/train">
+      <button type="submit" class="btn-train">🌐 &nbsp;Train Model &nbsp;→</button>
+    </form>
+
+    {% if context and context != "Rendering" %}
+    <div class="result {% if context == 'Response-Yes' %}result--yes{% else %}result--no{% endif %}">
+      <div class="result-icon">{% if context == "Response-Yes" %}✅{% else %}❌{% endif %}</div>
+      <div class="result-body">
+        <div class="result-label">Prediction Result</div>
+        <h2>{{ context }}</h2>
+        <p class="result-hint">
+          {% if context == "Response-Yes" %}Customer is likely interested in vehicle insurance.
+          {% else %}Customer is unlikely interested in vehicle insurance.{% endif %}
+        </p>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
 </body>
 </html>
