@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
@@ -14,8 +15,27 @@ from src.pipline.prediction_pipeline import VehicleData, VehicleDataClassifier
 from src.pipline.training_pipeline import TrainPipeline
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Load shared resources once when the app starts.
+    """
+    app.state.model_predictor = None
+    app.state.model_ready = False
+    app.state.model_load_error = None
+
+    try:
+        predictor = VehicleDataClassifier()
+        predictor.model.loaded_model = predictor.model.load_model()
+        app.state.model_predictor = predictor
+        app.state.model_ready = True
+    except Exception as e:
+        app.state.model_load_error = str(e)
+    yield
+
+
 #Initialize FastAPI Application
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 
 # Mount the 'static' directory for serving static files (like CSS)
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -33,6 +53,16 @@ app.add_middleware(CORSMiddleware,
                    allow_headers = ["*"],
                    )
 
+
+def reload_model(app_instance: FastAPI) -> None:
+    """
+    Refresh the in-memory model from S3 so the app uses the latest pushed model.
+    """
+    predictor = VehicleDataClassifier()
+    predictor.model.loaded_model = predictor.model.load_model()
+    app_instance.state.model_predictor = predictor
+    app_instance.state.model_ready = True
+    app_instance.state.model_load_error = None
 
 class DataForm:
     """
@@ -54,6 +84,24 @@ class DataForm:
         self.Vehicle_Age_gt_2_Years: Optional[int] = None
         self.Vehicle_Damage_Yes: Optional[int] = None
 
+    # async def get_vehicle_data(self):
+    #     """
+    #     Method to retrieve and assign form data to class attributes.
+    #     This method is asynchronous to handle form data fetching without blocking.
+    #     """
+    #     form = await self.request.form()
+    #     self.Gender = form.get("Gender")
+    #     self.Age = form.get("Age")
+    #     self.Driving_License = form.get("Driving_License")
+    #     self.Region_Code = form.get("Region_Code")
+    #     self.Previously_Insured = form.get("Previously_Insured")
+    #     self.Annual_Premium = form.get("Annual_Premium")
+    #     self.Policy_Sales_Channel = form.get("Policy_Sales_Channel")
+    #     self.Vintage = form.get("Vintage")
+    #     self.Vehicle_Age_lt_1_Year = form.get("Vehicle_Age_lt_1_Year")
+    #     self.Vehicle_Age_gt_2_Years = form.get("Vehicle_Age_gt_2_Years")
+    #     self.Vehicle_Damage_Yes = form.get("Vehicle_Damage_Yes")
+
     async def get_vehicle_data(self):
         """
         Method to retrieve and assign form data to class attributes.
@@ -61,16 +109,16 @@ class DataForm:
         """
         form = await self.request.form()
         self.Gender = form.get("Gender")
-        self.Age = form.get("Age")
-        self.Driving_License = form.get("Driving_License")
-        self.Region_Code = form.get("Region_Code")
-        self.Previously_Insured = form.get("Previously_Insured")
-        self.Annual_Premium = form.get("Annual_Premium")
-        self.Policy_Sales_Channel = form.get("Policy_Sales_Channel")
-        self.Vintage = form.get("Vintage")
-        self.Vehicle_Age_lt_1_Year = form.get("Vehicle_Age_lt_1_Year")
-        self.Vehicle_Age_gt_2_Years = form.get("Vehicle_Age_gt_2_Years")
-        self.Vehicle_Damage_Yes = form.get("Vehicle_Damage_Yes")
+        self.Age = int(form.get("Age"))
+        self.Driving_License = int(form.get("Driving_License"))
+        self.Region_Code = float(form.get("Region_Code"))
+        self.Previously_Insured = int(form.get("Previously_Insured"))
+        self.Annual_Premium = float(form.get("Annual_Premium"))
+        self.Policy_Sales_Channel = float(form.get("Policy_Sales_Channel"))
+        self.Vintage = int(form.get("Vintage"))
+        self.Vehicle_Age_lt_1_Year = int(form.get("Vehicle_Age_lt_1_Year"))
+        self.Vehicle_Age_gt_2_Years = int(form.get("Vehicle_Age_gt_2_Years"))
+        self.Vehicle_Damage_Yes = int(form.get("Vehicle_Damage_Yes"))
 
     
 # Route to render to the main page with the form
@@ -86,8 +134,21 @@ async def index(request: Request):
     context={"context": "Rendering"}
 )
 
+
+@app.get("/health")
+async def health(request: Request):
+    """
+    Report whether the model is loaded and ready for predictions.
+    """
+    return {
+        "status": "ok" if request.app.state.model_ready else "degraded",
+        "model_ready": request.app.state.model_ready,
+        "model_loaded": request.app.state.model_predictor is not None,
+        "error": request.app.state.model_load_error,
+    }
+
 # Route to trigger the model training process
-@app.get("/train")
+@app.post("/train")
 async def trainRouteClient():
     """
     Endpoint to initiate the model training pipeline. 
@@ -95,6 +156,7 @@ async def trainRouteClient():
     try:
         train_pipeline = TrainPipeline()
         train_pipeline.run_pipeline()
+        reload_model(app)
         return Response("Training Succesfull!!")
     
     except Exception as e:
@@ -107,6 +169,9 @@ async def predictRouteClient(request: Request):
     Endpoint to receive form data, process it and make prediction.
     """
     try:
+        if not request.app.state.model_ready:
+            return {"status": False, "error": "Model is not loaded yet.", "health": await health(request)}
+
         form = DataForm(request)
         await form.get_vehicle_data()
 
@@ -127,8 +192,8 @@ async def predictRouteClient(request: Request):
         # Convert the form data into a DataFrame
         vehicle_df = vehicle_data.get_vehicle_input_data_frame()
 
-        # Initialize the prediction pipeline
-        model_predictor = VehicleDataClassifier()
+        # Reuse the preloaded predictor instead of creating a new one per request
+        model_predictor = request.app.state.model_predictor
 
         # Make a prediction and retrive the result
         value = model_predictor.predict(dataframe=vehicle_df)[0]
