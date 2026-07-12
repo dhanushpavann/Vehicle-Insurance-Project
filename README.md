@@ -254,7 +254,13 @@ The screenshots and demo video used in this README live in the `screenshots/` fo
 
 The short demo video is available here:
 
-- [samplevideo.mov](screenshots/samplevideo.mov)
+<a href="screenshots/samplevideo.mp4">
+  <img src="screenshots/main.png" alt="Watch the demo video" width="100%">
+</a>
+
+Direct video link:
+
+- [samplevideo.mp4](screenshots/samplevideo.mp4)
 
 If you rename or replace any of these files later, update the paths above to match the new names.
 
