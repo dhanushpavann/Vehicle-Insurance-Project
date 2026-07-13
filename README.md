@@ -26,7 +26,6 @@ This project was designed to demonstrate more than just model training. It shows
 - API Endpoints
 - Screenshots
 - AWS Deployment Notes
-- Future Improvements
 - Author
 
 ## Overview
@@ -283,14 +282,7 @@ If you are shutting down the project to avoid charges, make sure to clean up:
 4. The ECR repository if you do not want image storage charges
 5. Any extra AWS resources such as load balancers, NAT gateways, or log groups
 
-## Future Improvements
 
-- Add Docker polish and production hardening
-- Add automated tests
-- Improve the form UI with human-friendly inputs
-- Add CI/CD for automatic deployment
-- Add monitoring and logging dashboards
-- Package the project with a cleaner cloud deployment flow
 
 ## Why This Project Is Good For Hiring Review
 
