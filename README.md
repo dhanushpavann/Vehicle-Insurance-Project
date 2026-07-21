@@ -284,7 +284,7 @@ If you are shutting down the project to avoid charges, make sure to clean up:
 
 
 
-## Why This Project Is Good For Hiring Review
+## Why This Project Is Good For:
 
 This project demonstrates:
 
